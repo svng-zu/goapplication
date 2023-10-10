@@ -1,0 +1,36 @@
+name : GoApplication
+#어떤 이벤트가 발생했을 때
+#cron 이면 주기적인 작업
+on:
+  push:
+    branches: ["main"] #main 브랜치에 push 이벤트가 발생하면
+  pull_request: 
+    branches: ["main"] #main 브랜치에 pr 이벤트가 발생하면
+
+jobs:
+  build: 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set Up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.15
+      
+      - name: Build
+        run: go build -v ./...
+        #with 과 run 이 언어마다 달라짐
+      - name: Login To DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: itbam
+          password: dckr_pat_P-xQb0XWxU4so-cSugb5rOVze4o
+
+      - name: build and releae to DockerHub
+        env:
+          NAME: itbam
+          REPO: goapplication
+        run: |
+          docker build -t $REPO .
+          docker tag $REPO:latest $NAME/$REPO:latest
+          docker push $NAME/$REPO:latest
